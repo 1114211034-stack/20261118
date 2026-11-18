@@ -1,0 +1,346 @@
+```html
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#dceff1">
+  <title>雪境 2048｜聖誕小遊戲</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Trebuchet MS", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      color: #23464b;
+      background: #e6f2f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      overflow-x: hidden;
+      background: linear-gradient(#d8edf1 0%, #eaf5f2 45%, #f8f7ed 100%);
+    }
+
+    button { font: inherit; }
+
+    button:focus-visible,
+    .board:focus-visible {
+      outline: 3px solid #d86656;
+      outline-offset: 4px;
+    }
+
+    /* 頂部雪景插畫 */
+    .landscape {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 350px;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .landscape svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 1090px;
+      margin: 0 auto;
+      padding: 34px 22px 55px;
+    }
+
+    .masthead {
+      min-height: 185px;
+      padding: 18px 4px 24px;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      padding: 7px 13px;
+      border: 1px solid rgba(38, 101, 91, .16);
+      border-radius: 100px;
+      background: rgba(255, 255, 255, .73);
+      color: #427b72;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      box-shadow: 0 3px 0 rgba(33, 82, 75, .06);
+    }
+
+    h1 {
+      margin: 13px 0 5px;
+      color: #205b56;
+      font-size: clamp(42px, 7vw, 75px);
+      line-height: 1.1;
+      letter-spacing: -.06em;
+      text-shadow: 3px 4px 0 rgba(255, 255, 255, .8);
+    }
+
+    .masthead p {
+      margin: 0;
+      color: #446d70;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 2px solid rgba(255, 255, 255, .9);
+      border-radius: 25px;
+      background: rgba(255, 255, 251, .9);
+      box-shadow: 0 12px 0 rgba(57, 111, 104, .07),
+                  0 20px 40px rgba(48, 93, 89, .1);
+    }
+
+    .sidebar { padding: 25px; }
+
+    .side-icon {
+      display: grid;
+      width: 62px;
+      height: 62px;
+      place-items: center;
+      border-radius: 20px;
+      background: #e5f2ea;
+      font-size: 34px;
+      transform: rotate(-5deg);
+    }
+
+    .sidebar h2 {
+      margin: 17px 0 7px;
+      color: #205b56;
+      font-size: 23px;
+    }
+
+    .intro {
+      margin: 0 0 25px;
+      color: #66807d;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    .section-label {
+      display: block;
+      margin: 0 0 10px;
+      color: #416862;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .09em;
+    }
+
+    .difficulty-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .difficulty {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border: 2px solid #e5eeea;
+      border-radius: 14px;
+      background: #fff;
+      color: #42645f;
+      cursor: pointer;
+      text-align: left;
+      transition: transform .15s, background .15s, border-color .15s;
+    }
+
+    .difficulty:hover { transform: translateY(-2px); }
+
+    .difficulty[aria-pressed="true"] {
+      border-color: #4c8975;
+      background: #e7f4eb;
+      color: #215b4d;
+      box-shadow: inset 0 -3px 0 rgba(55, 121, 92, .1);
+    }
+
+    .difficulty strong { font-size: 15px; }
+    .difficulty span { font-size: 12px; font-weight: 800; opacity: .75; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+      margin: 24px 0 20px;
+    }
+
+    .stat {
+      padding: 13px 10px;
+      border-radius: 15px;
+      background: #eaf2ec;
+      text-align: center;
+    }
+
+    .stat:nth-child(2) { background: #fff0e7; }
+
+    .stat small {
+      display: block;
+      margin-bottom: 2px;
+      color: #71827a;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .stat strong {
+      color: #275e56;
+      font-size: 24px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .primary-button,
+    .secondary-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 10px 18px;
+      border: 0;
+      border-radius: 13px;
+      cursor: pointer;
+      font-weight: 900;
+      transition: transform .15s, filter .15s;
+    }
+
+    .primary-button:hover,
+    .secondary-button:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.04);
+    }
+
+    .primary-button {
+      background: #c8574d;
+      color: white;
+      box-shadow: 0 4px 0 #a93e39;
+    }
+
+    .secondary-button {
+      background: #e7f1e8;
+      color: #245b50;
+    }
+
+    .restart { width: 100%; }
+
+    .howto {
+      margin: 20px 0 0;
+      padding-top: 17px;
+      border-top: 1px dashed #c8d9d1;
+      color: #698079;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .game-panel {
+      min-width: 0;
+      padding: 17px;
+    }
+
+    .game-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 1px 4px 15px;
+    }
+
+    .game-heading strong {
+      color: #245c54;
+      font-size: 16px;
+    }
+
+    .game-heading span {
+      color: #728b82;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .board-frame {
+      position: relative;
+      max-width: 570px;
+      margin: 0 auto;
+      border-radius: 20px;
+    }
+
+    .board {
+      --cols: 7;
+      --gap: 5px;
+      --pad: 10px;
+      --tile-font: clamp(12px, 2.5vw, 25px);
+      display: grid;
+      width: 100%;
+      aspect-ratio: 1;
+      grid-template-columns: repeat(var(--cols), minmax(0, 1fr));
+      grid-template-rows: repeat(var(--cols), minmax(0, 1fr));
+      gap: var(--gap);
+      padding: var(--pad);
+      border: 3px solid #458177;
+      border-radius: 20px;
+      background: #76a79a;
+      box-shadow: inset 0 4px 10px rgba(26, 75, 68, .15),
+                  0 7px 0 #41776d;
+      outline-offset: 5px;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .board[data-size="4"] {
+      --gap: 9px;
+      --pad: 12px;
+      --tile-font: clamp(23px, 5.5vw, 43px);
+    }
+
+    .board[data-size="7"] {
+      --gap: 5px;
+      --pad: 10px;
+      --tile-font: clamp(12px, 2.5vw, 25px);
+    }
+
+    .board[data-size="10"] {
+      --gap: 3px;
+      --pad: 8px;
+      --tile-font: clamp(9px, 1.85vw, 18px);
+    }
+
+    .tile {
+      display: grid;
+      min-width: 0;
+      min-height: 0;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 7px;
+      background: rgba(235, 250, 239, .26);
+      font-size: var(--tile-font);
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -.06em;
+      line-height: 1;
+    }
+
+    .tile:not(.empty) {
+      color: #30554e;
+      background: var(--tile-color);
+      box-shadow: inset 0 -3px 0 rgba(41, 80, 70, .1),
+                  0 2px 3px rgba(30, 74, 67, .08);
+    }
+
+    .tile.long { font-size: calc(var(--tile-font) * .75); }
+    .tile.very-long { font-size: calc(var(--tile-font) * .61); }
+    .tile[data-value="2"] { --tile-color: #f8f6df; }
+    .tile[data-value="4"] { --tile-color: #f9e
