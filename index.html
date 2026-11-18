@@ -342,4 +342,363 @@
     .tile.long { font-size: calc(var(--tile-font) * .75); }
     .tile.very-long { font-size: calc(var(--tile-font) * .61); }
     .tile[data-value="2"] { --tile-color: #f8f6df; }
-    .tile[data-value="4"] { --tile-color: #f9e
+    .tile[data-value="4"] { --tile-color: #f9e8c9; }
+    .tile[data-value="8"] { --tile-color: #f7c99c; }
+    .tile[data-value="16"] { --tile-color: #f5a982; }
+    .tile[data-value="32"] { --tile-color: #ef896f; }
+    .tile[data-value="64"] { --tile-color: #e96d5d; color: #fffaf0; }
+    .tile[data-value="128"],
+    .tile[data-value="256"],
+    .tile[data-value="512"] {
+      background: #e8d77f;
+      color: #4c5940;
+    }
+    .tile[data-value="1024"],
+    .tile[data-value="2048"] {
+      background: #cce5a0;
+      color: #315a46;
+      box-shadow: inset 0 -3px 0 rgba(41, 80, 70, .12),
+                  0 0 12px rgba(255, 255, 220, .8);
+    }
+
+    .game-message {
+      min-height: 25px;
+      margin: 15px 4px 0;
+      color: #52746b;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .game-message[data-state="won"] { color: #a45b36; }
+    .game-message[data-state="over"] { color: #b34e47; }
+
+    .game-actions {
+      display: flex;
+      justify-content: center;
+      margin-top: 9px;
+    }
+
+    .landscape .snowflake {
+      fill: #fff;
+      opacity: .8;
+    }
+
+    @media (max-width: 760px) {
+      .page { padding: 22px 16px 38px; }
+      .masthead { min-height: 160px; padding-top: 14px; }
+      .landscape { height: 300px; }
+      .layout { grid-template-columns: 1fr; gap: 16px; }
+      .sidebar { padding: 20px; }
+      .side-icon { width: 52px; height: 52px; font-size: 29px; }
+      .sidebar h2 { margin-top: 12px; }
+      .intro { margin-bottom: 18px; }
+      .stats { margin: 18px 0; }
+      .howto { margin-top: 16px; }
+      .game-panel { padding: 12px; }
+      .board-frame { max-width: 540px; }
+    }
+
+    @media (max-width: 420px) {
+      .page { padding-right: 12px; padding-left: 12px; }
+      .masthead { min-height: 145px; }
+      h1 { font-size: clamp(38px, 12vw, 52px); }
+      .game-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
+      .board[data-size="4"] { --gap: 7px; --pad: 9px; }
+      .board[data-size="7"] { --gap: 4px; --pad: 7px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="landscape" aria-hidden="true">
+    <svg viewBox="0 0 1440 350" preserveAspectRatio="xMidYMin slice">
+      <circle cx="1190" cy="72" r="37" fill="#fff9dd" opacity=".8" />
+      <path d="M0 235 190 90l185 145 185-170 220 170 190-128 210 128 160-115 200 130v100H0Z" fill="#c5e1df" />
+      <path d="m112 150 78-60 77 60-29-8-17 10-30-13-27 13-21-9Z" fill="#fff" opacity=".9" />
+      <path d="m480 105 80-80 82 80-30-9-19 13-33-16-29 16-22-11Z" fill="#fff" />
+      <path d="m1000 168 90-63 87 63-31-10-23 13-31-15-30 14-22-10Z" fill="#fff" opacity=".9" />
+      <path d="M0 270q190-57 365 0t370 0 375 0 330-14v94H0Z" fill="#edf6ed" />
+      <g fill="#76a89b">
+        <path d="m90 288 33-88 34 88h-20l24 46H84l24-46Z" />
+        <path d="m280 300 26-67 27 67h-16l19 37h-79l20-37Z" />
+        <path d="m1270 290 35-93 36 93h-22l25 48h-105l26-48Z" />
+        <path d="m1380 304 25-66 26 66h-16l19 36h-77l19-36Z" />
+      </g>
+      <g class="snowflake">
+        <circle cx="350" cy="68" r="3" /><circle cx="820" cy="58" r="4" />
+        <circle cx="940" cy="125" r="3" /><circle cx="250" cy="170" r="4" />
+        <circle cx="730" cy="145" r="3" /><circle cx="1320" cy="120" r="4" />
+      </g>
+    </svg>
+  </div>
+
+  <main class="page">
+    <header class="masthead">
+      <span class="eyebrow">A LITTLE WINTER CHALLENGE</span>
+      <h1>雪境 2048</h1>
+      <p>滑動冰雪方塊，合成你的聖誕奇蹟！</p>
+    </header>
+
+    <div class="layout">
+      <aside class="panel sidebar" aria-label="遊戲設定與說明">
+        <div class="side-icon" aria-hidden="true">☃️</div>
+        <h2>雪人挑戰</h2>
+        <p class="intro">每一次滑動，都是向雪境深處的一步。把相同數字合在一起，看看你能走多遠！</p>
+
+        <span class="section-label" id="difficulty-label">選擇棋盤大小</span>
+        <div class="difficulty-list" role="group" aria-labelledby="difficulty-label">
+          <button class="difficulty" type="button" data-size="4" aria-pressed="false">
+            <strong>暖身雪地</strong><span>4 × 4</span>
+          </button>
+          <button class="difficulty" type="button" data-size="7" aria-pressed="true">
+            <strong>冬日森林</strong><span>7 × 7</span>
+          </button>
+          <button class="difficulty" type="button" data-size="10" aria-pressed="false">
+            <strong>極光雪原</strong><span>10 × 10</span>
+          </button>
+        </div>
+
+        <div class="stats" aria-label="遊戲統計">
+          <div class="stat"><small>目前分數</small><strong id="score">0</strong></div>
+          <div class="stat"><small>最高紀錄</small><strong id="best">0</strong></div>
+        </div>
+
+        <button class="primary-button restart" id="restart" type="button">↻　重新開始</button>
+        <p class="howto"><strong>怎麼玩？</strong><br>使用鍵盤方向鍵，或在棋盤上滑動來移動方塊。相同數字相撞時會合併，目標是合成 2048！</p>
+      </aside>
+
+      <section class="panel game-panel" aria-label="2048 遊戲棋盤">
+        <div class="game-heading">
+          <strong>❄️　把冬日能量合而為一</strong>
+          <span>方向鍵 / WASD / 滑動皆可操作</span>
+        </div>
+        <div class="board-frame">
+          <div class="board" id="board" data-size="7" role="grid" aria-label="7 乘 7 遊戲棋盤" tabindex="0"></div>
+        </div>
+        <p class="game-message" id="message" role="status" aria-live="polite">準備好了嗎？開始你的雪境冒險！</p>
+        <div class="game-actions">
+          <button class="secondary-button" id="continue" type="button" hidden>繼續遊戲</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      const boardElement = document.querySelector("#board");
+      const scoreElement = document.querySelector("#score");
+      const bestElement = document.querySelector("#best");
+      const messageElement = document.querySelector("#message");
+      const continueButton = document.querySelector("#continue");
+      const difficultyButtons = [...document.querySelectorAll(".difficulty")];
+      const bestKey = "snowland-2048-best";
+
+      let size = 7;
+      let cells = [];
+      let score = 0;
+      let best = readBest();
+      let won = false;
+      let ended = false;
+      let touchStart = null;
+
+      function readBest() {
+        try {
+          return Number(localStorage.getItem(bestKey)) || 0;
+        } catch {
+          return 0;
+        }
+      }
+
+      function saveBest() {
+        try {
+          localStorage.setItem(bestKey, String(best));
+        } catch {
+          // 私密瀏覽或停用儲存空間時，仍可正常遊玩。
+        }
+      }
+
+      function updateStats() {
+        scoreElement.textContent = score.toLocaleString("zh-TW");
+        bestElement.textContent = best.toLocaleString("zh-TW");
+      }
+
+      function setMessage(text, state = "") {
+        messageElement.textContent = text;
+        messageElement.dataset.state = state;
+      }
+
+      function addTile() {
+        const empty = [];
+        cells.forEach((value, index) => {
+          if (value === 0) empty.push(index);
+        });
+        if (!empty.length) return;
+        const index = empty[Math.floor(Math.random() * empty.length)];
+        cells[index] = Math.random() < 0.9 ? 2 : 4;
+      }
+
+      function render() {
+        const fragment = document.createDocumentFragment();
+        boardElement.replaceChildren();
+        boardElement.dataset.size = String(size);
+        boardElement.style.setProperty("--cols", String(size));
+        boardElement.setAttribute("aria-label", `${size} 乘 ${size} 遊戲棋盤`);
+
+        cells.forEach((value, index) => {
+          const tile = document.createElement("div");
+          tile.className = value ? "tile" : "tile empty";
+          tile.setAttribute("role", "gridcell");
+          const row = Math.floor(index / size) + 1;
+          const column = (index % size) + 1;
+          tile.setAttribute("aria-label", value ? `第 ${row} 列第 ${column} 格，${value}` : `第 ${row} 列第 ${column} 格，空格`);
+          if (value) {
+            tile.textContent = value.toLocaleString("zh-TW");
+            tile.dataset.value = String(value);
+            if (value >= 1024) tile.classList.add("very-long");
+            else if (value >= 128) tile.classList.add("long");
+          }
+          fragment.append(tile);
+        });
+
+        boardElement.append(fragment);
+        updateStats();
+      }
+
+      function startGame(nextSize = size) {
+        size = nextSize;
+        cells = Array(size * size).fill(0);
+        score = 0;
+        won = false;
+        ended = false;
+        continueButton.hidden = true;
+        difficultyButtons.forEach((button) => {
+          button.setAttribute("aria-pressed", String(Number(button.dataset.size) === size));
+        });
+        addTile();
+        addTile();
+        setMessage("準備好了嗎？開始你的雪境冒險！");
+        render();
+      }
+
+      function canMove() {
+        if (cells.some((value) => value === 0)) return true;
+        for (let row = 0; row < size; row += 1) {
+          for (let column = 0; column < size; column += 1) {
+            const index = row * size + column;
+            if (column + 1 < size && cells[index] === cells[index + 1]) return true;
+            if (row + 1 < size && cells[index] === cells[index + size]) return true;
+          }
+        }
+        return false;
+      }
+
+      function move(direction) {
+        if (ended) return;
+        const previous = cells.slice();
+        let gained = 0;
+
+        for (let line = 0; line < size; line += 1) {
+          const indexes = [];
+          for (let step = 0; step < size; step += 1) {
+            let row;
+            let column;
+            if (direction === "left") { row = line; column = step; }
+            else if (direction === "right") { row = line; column = size - 1 - step; }
+            else if (direction === "up") { row = step; column = line; }
+            else { row = size - 1 - step; column = line; }
+            indexes.push(row * size + column);
+          }
+
+          const values = indexes.map((index) => cells[index]).filter((value) => value !== 0);
+          const merged = [];
+          for (let i = 0; i < values.length; i += 1) {
+            if (values[i] === values[i + 1]) {
+              const combined = values[i] * 2;
+              merged.push(combined);
+              gained += combined;
+              i += 1;
+            } else {
+              merged.push(values[i]);
+            }
+          }
+          indexes.forEach((index, position) => {
+            cells[index] = merged[position] || 0;
+          });
+        }
+
+        if (cells.every((value, index) => value === previous[index])) return;
+
+        score += gained;
+        if (score > best) {
+          best = score;
+          saveBest();
+        }
+        addTile();
+
+        if (!won && cells.includes(2048)) {
+          won = true;
+          setMessage("太棒了！你合成了 2048！可以繼續挑戰更高分。", "won");
+          continueButton.hidden = false;
+        } else if (!canMove()) {
+          ended = true;
+          setMessage("棋盤滿了，雪境冒險暫時告一段落！再玩一局吧。", "over");
+        } else if (!won) {
+          setMessage(gained ? `漂亮的合併！增加 ${gained.toLocaleString("zh-TW")} 分。` : "繼續滑動，尋找合併的機會！");
+        }
+
+        render();
+      }
+
+      const keyDirections = {
+        ArrowLeft: "left", a: "left", A: "left",
+        ArrowRight: "right", d: "right", D: "right",
+        ArrowUp: "up", w: "up", W: "up",
+        ArrowDown: "down", s: "down", S: "down",
+      };
+
+      document.addEventListener("keydown", (event) => {
+        const direction = keyDirections[event.key];
+        if (!direction || event.target.closest("button")) return;
+        event.preventDefault();
+        move(direction);
+      });
+
+      boardElement.addEventListener("touchstart", (event) => {
+        const touch = event.changedTouches[0];
+        touchStart = { x: touch.clientX, y: touch.clientY };
+      }, { passive: true });
+
+      boardElement.addEventListener("touchend", (event) => {
+        if (!touchStart) return;
+        const touch = event.changedTouches[0];
+        const dx = touch.clientX - touchStart.x;
+        const dy = touch.clientY - touchStart.y;
+        touchStart = null;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < 24) return;
+        move(Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? "right" : "left") : (dy > 0 ? "down" : "up"));
+      }, { passive: true });
+
+      difficultyButtons.forEach((button) => {
+        button.addEventListener("click", () => startGame(Number(button.dataset.size)));
+      });
+      document.querySelector("#restart").addEventListener("click", () => startGame(size));
+      continueButton.addEventListener("click", () => {
+        won = true;
+        continueButton.hidden = true;
+        setMessage("遊戲繼續！看看能不能合成更大的數字。", "won");
+      });
+
+      updateStats();
+      startGame();
+    })();
+  </script>
+</body>
+</html>
